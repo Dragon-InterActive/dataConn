@@ -1,4 +1,3 @@
-
 import { loadEnv } from "./envLoader.ts";
 
 // Load environment variables
