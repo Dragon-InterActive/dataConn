@@ -1,17 +1,17 @@
 import { loadEnv } from "./utils/envLoader";
 import type { DatabaseAdapter } from "./types";
 
-// Adapter-Importe (werden nach und nach ergänzt)
+// Adapter Imports
 import { PostgresAdapter } from "./adapters/pgAdapter";
 import { MySQLAdapter } from "./adapters/mysqlAdapter";
 import { MongoDBAdapter } from "./adapters/mongoAdapter";
 import { SQLiteAdapter } from "./adapters/sqliteAdapter";
 import { RedisAdapter } from "./adapters/redisAdapter";
 
-// Singleton-Muster für Adapter
+// Singleton-pattern for Adapters
 const connections: Record<string, DatabaseAdapter> = {};
 
-// Universelle Datenbankverbindung
+// Universal database connections
 export const dataConn = {
   pg(): DatabaseAdapter {
     if (!connections.pg) {

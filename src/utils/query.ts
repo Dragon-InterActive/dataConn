@@ -1,10 +1,12 @@
+
+
 // Provides 'query()' and 'prepared()' functions using the 'sanitize()' helper
 import { sanitize } from './sanitize';
 
 // Executes a standard SQL query without parameter binding
-export async function query(db: any, sql: string): Promise<any[]> {
+export async function query(db: any, sql: string, values?: any[]): Promise<any[]> {
     try {
-        const result = await db.query(sql);
+        const result = values ? await db.query(sql, values) : await db.query(sql);
         return result.rows;
     } catch (error) {
         throw new Error(`Query failed: ${error.message}`);
