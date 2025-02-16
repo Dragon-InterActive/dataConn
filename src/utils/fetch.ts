@@ -1,4 +1,4 @@
-// fetch.ts - Function collection for relational databases (PostgreSQL, MySQL, SQLite)
+// Function collection for relational databases (PostgreSQL, MySQL, SQLite)
 // Queries are based directly on database instances passed from dataConn.
 
 import { sanitize, inList, notInList } from "./sanitizer";

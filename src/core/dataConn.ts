@@ -1,5 +1,4 @@
 
-// src/core/dataConn.ts
 import { loadEnv } from "./envLoader.ts";
 
 // Load environment variables
