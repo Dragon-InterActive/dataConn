@@ -1,0 +1,36 @@
+{
+  "name": "dataconn",
+  "version": "1.0.0",
+  "keywords": ["db","db Connection","node.js","deno","bun"],
+  "author": "MasterNemo@Dragon-InterActive",
+  "license": "LGPL-3.0",
+  "description": "Multi-DB-Connection TS Library inspired by ezSQL for php from https://github.com/ezSQL/ezsql to make interacting with a database ridiculusly easy",
+  "main": "dist/index.js",
+  "types": "dist/types/index.d.ts",
+  "exports":{
+    ".":{
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "types": "./dist/types/index.d.ts"
+    },
+    "./deno":{
+      "import": "./dist/index.ts"
+    }
+  },
+  "deno":{
+    "entry": "./src/index.ts"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=22.10.0"
+  },
+  "scripts": {
+    "check-node": "node -e \"if (parseInt(process.version.slice(1)) < 22) throw new Error('Node.js v22.10.0 oder höher wird benötigt.')\"",
+    "build": "npm run check-node && tsc",
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  }
+
+}
