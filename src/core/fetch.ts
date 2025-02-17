@@ -1,80 +1,62 @@
-// Function collection for relational databases (PostgreSQL, MySQL, SQLite)
-// Queries are based directly on database instances passed from dataConn.
+// Enhanced with ezSQL-inspired functions, automatic adapter detection, and robust error handling.
 
-import { sanitize, inList, notInList } from "../utils/sanitizer";
+// Executes a query using the provided database adapter.
+async function queryDB(dbInstance: any, query: string, params: any[] = []): Promise<any[]> {
+  if (typeof dbInstance.query === 'function') {
+    try {
+      return await dbInstance.query(query, params);
+    } catch (error) {
+      console.error("Database query failed:", error);
+      throw new Error("Query execution error");
+    }
+  }
+  throw new Error("Unsupported database adapter: Missing query method");
+}
 
-/**
- * getVar - Returns the value of the first column from the first row.
- */
+// Retrieves a single value from the first row and column.
 export async function getVar(dbInstance: any, query: string, params: any[] = []): Promise<any> {
-  const result = await dbInstance.query(query, params);
-  return result.length > 0 ? result[0][Object.keys(result[0])[0]] : null;
+  const result = await queryDB(dbInstance, query, params);
+  return result?.[0]?.[Object.keys(result[0])[0]] ?? null;
 }
 
-/**
- * getRow - Returns the first row as an object.
- */
-export async function getRow(dbInstance: any, query: string, params: any[] = []): Promise<Record<string, any> | null> {
-  const result = await dbInstance.query(query, params);
-  return result.length > 0 ? result[0] : null;
+// Retrieves the first row from the results.
+export async function getRow(dbInstance: any, query: string, params: any[] = []): Promise<any> {
+  const result = await queryDB(dbInstance, query, params);
+  return result?.[0] ?? null;
 }
 
-/**
- * getCol - Returns a single column as an array.
- */
+// Retrieves the first column from all rows as an array.
 export async function getCol(dbInstance: any, query: string, params: any[] = []): Promise<any[]> {
-  const result = await dbInstance.query(query, params);
-  return result.length > 0 ? result.map(row => row[Object.keys(row)[0]]) : [];
+  const result = await queryDB(dbInstance, query, params);
+  return result.map(row => Object.values(row)[0] ?? null);
 }
 
-/**
- * getResults - Returns all results as an array of objects.
- */
-export async function getResults(dbInstance: any, query: string, params: any[] = []): Promise<Record<string, any>[]> {
-  return await dbInstance.query(query, params);
+// Retrieves all rows from the result set.
+export async function getResults(dbInstance: any, query: string, params: any[] = []): Promise<any[]> {
+  return await queryDB(dbInstance, query, params);
 }
 
-/**
- * getCount - Returns the number of rows from the query.
- */
-export async function getCount(dbInstance: any, query: string, params: any[] = []): Promise<number> {
-  const result = await dbInstance.query(query, params);
-  return result.length > 0 ? Number(result[0][Object.keys(result[0])[0]]) : 0;
+// Additional SQL condition helpers from ezSQL:
+export function inList(column: string, values: any[]): string {
+  return `${column} IN (${values.map(v => `'${v}'`).join(', ')})`;
 }
 
-/**
- * insert - Executes an INSERT statement and returns the inserted ID if available.
- */
-export async function insert(dbInstance: any, query: string, params: any[] = []): Promise<any> {
-  const result = await dbInstance.query(query, params);
-  return result.insertId ?? null;
+export function notInList(column: string, values: any[]): string {
+  return `${column} NOT IN (${values.map(v => `'${v}'`).join(', ')})`;
 }
 
-/**
- * update - Executes an UPDATE statement and returns the number of affected rows.
- */
-export async function update(dbInstance: any, query: string, params: any[] = []): Promise<number> {
-  const result = await dbInstance.query(query, params);
-  return result.affectedRows ?? 0;
+export function between(column: string, start: any, end: any): string {
+  return `${column} BETWEEN '${start}' AND '${end}'`;
 }
 
-/**
- * delete - Executes a DELETE statement and returns the number of affected rows.
- */
-export async function del(dbInstance: any, query: string, params: any[] = []): Promise<number> {
-  const result = await dbInstance.query(query, params);
-  return result.affectedRows ?? 0;
+export function like(column: string, pattern: string): string {
+  return `${column} LIKE '${pattern}'`;
 }
 
-/**
- * Comparison operators (inspired by ezSQL)
- */
-export function eq(column: string, value: any): string { return `${column} = ${sanitize(value)}`; }
-export function neq(column: string, value: any): string { return `${column} != ${sanitize(value)}`; }
-export function gt(column: string, value: any): string { return `${column} > ${sanitize(value)}`; }
-export function gte(column: string, value: any): string { return `${column} >= ${sanitize(value)}`; }
-export function lt(column: string, value: any): string { return `${column} < ${sanitize(value)}`; }
-export function lte(column: string, value: any): string { return `${column} <= ${sanitize(value)}`; }
-export function like(column: string, value: any): string { return `${column} LIKE ${sanitize(value)}`; }
-export function notLike(column: string, value: any): string { return `${column} NOT LIKE ${sanitize(value)}`; }
-export { inList, notInList }; 
+// Standard comparison utilities:
+export function eq(column: string, value: any): string { return `${column} = '${value}'`; }
+export function neq(column: string, value: any): string { return `${column} != '${value}'`; }
+export function lt(column: string, value: any): string { return `${column} < '${value}'`; }
+export function lte(column: string, value: any): string { return `${column} <= '${value}'`; }
+export function gt(column: string, value: any): string { return `${column} > '${value}'`; }
+export function gte(column: string, value: any): string { return `${column} >= '${value}'`; }
