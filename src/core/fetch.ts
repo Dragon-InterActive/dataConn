@@ -1,7 +1,7 @@
 // Function collection for relational databases (PostgreSQL, MySQL, SQLite)
 // Queries are based directly on database instances passed from dataConn.
 
-import { sanitize, inList, notInList } from "./sanitizer";
+import { sanitize, inList, notInList } from "../utils/sanitizer";
 
 /**
  * getVar - Returns the value of the first column from the first row.
