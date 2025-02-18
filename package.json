@@ -29,6 +29,9 @@
     "build": "npm run check-node && tsc",
     "test": "node --test"
   },
+  "dependencies": {
+    "ioredis": "^5.5.0"
+  },
   "devDependencies": {
     "typescript": "^5.7.3"
   }
