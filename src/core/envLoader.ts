@@ -1,8 +1,12 @@
-import { fs } from "./layers.ts";
+// Platform-specific imports for file operations
+let fs;
+if (typeof Deno !== 'undefined') {
+  fs = Deno;
+} else {
+  const nodeFs = await import('node:fs');
+  fs = nodeFs.promises;
+}
 
-const DEFAULT_ENV_PATH = new URL("../../../../.env", import.meta.url).pathname;
-
-// Parses .env file content into key-value pairs
 function parseEnv(data: string): Record<string, string> {
   const result: Record<string, string> = {};
   data.split("\n").forEach((line) => {
@@ -14,41 +18,34 @@ function parseEnv(data: string): Record<string, string> {
   return result;
 }
 
-// Reads .env file from the project root
-function loadEnvFile(envPath = DEFAULT_ENV_PATH): Record<string, string> {
+function loadEnvWithPrefix(envPath: string): void {
   try {
     const data = fs.readFileSync(envPath, { encoding: "utf-8" });
-    return parseEnv(data);
+    const parsed = parseEnv(data);
+    Object.entries(parsed).forEach(([key, value]) => {
+      if (!process.env[key]) {
+        process.env[key] = value;
+      }
+    });
   } catch {
-    console.warn("No .env file found in project root.");
-    return {};
+    console.warn("Fallback: No .env file found.");
   }
 }
 
 // Node.js fallback if --env-file flag is not used
 function fallbackForNode() {
-  if (process.env.NODE_OPTIONS?.includes('--env-file')) {
-    console.log(".env already loaded via --env-file (Node.js)");
-    return;
+  if (!process.env.NODE_OPTIONS?.includes('--env-file')) {
+    loadEnvWithPrefix(new URL("../../../../.env", import.meta.url).pathname);
+    console.log("Node.js fallback envLoader executed.");
   }
-  const parsed = loadEnvFile();
-  for (const [key, value] of Object.entries(parsed)) {
-    if (!(key in process.env)) {
-      process.env[key] = value;
-    }
-  }
-  console.log("Node.js: .env values loaded as fallback");
 }
 
 // Deno fallback if environment variables are not set
 function fallbackForDeno() {
-  const parsed = loadEnvFile();
-  for (const [key, value] of Object.entries(parsed)) {
-    if (!Deno.env.has(key)) {
-      Deno.env.set(key, value);
-    }
+  if (!Deno.env.get("DENO_ENV_FILE")) {
+    loadEnvWithPrefix(".env");
+    console.log("Deno fallback envLoader executed.");
   }
-  console.log("Deno: .env values loaded as fallback");
 }
 
 // Bun does not require a fallback as it automatically loads .env
@@ -56,13 +53,12 @@ function fallbackForBun() {
   console.log("Bun automatically loads .env - no fallback required.");
 }
 
-// Main function: selects appropriate fallback based on platform
-export function loadEnv() {
-  if (typeof Bun !== "undefined") {
-    fallbackForBun();
-  } else if (typeof Deno !== "undefined") {
+export function loadEnv(): void {
+  if (typeof Deno !== 'undefined') {
     fallbackForDeno();
-  } else {
+  } else if (typeof Bun !== 'undefined') {
+    fallbackForBun();
+  } else if (typeof process !== 'undefined') {
     fallbackForNode();
   }
 }
