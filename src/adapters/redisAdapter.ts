@@ -48,7 +48,7 @@ export class RedisAdapter {
       });
     }
 
-    this.client.on('error', (err) => {
+    this.client.on('error', (err: any) => {
       console.error('Redis error:', err);
     });
   }
