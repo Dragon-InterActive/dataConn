@@ -66,6 +66,10 @@ export class RedisAdapter {
     }
   }
 
+  async isConnection(): Promise<boolean | false> {
+    return (this.isConnected) ? true:false; 
+  }
+
   async set(key: string, value: string, ttl?: number): Promise<void> {
     if (!this.isConnected) await this.connect();
     ttl ? await this.client.set(key, value, 'EX', ttl) : await this.client.set(key, value);
@@ -74,6 +78,11 @@ export class RedisAdapter {
   async get(key: string): Promise<string | null> {
     if (!this.isConnected) await this.connect();
     return await this.client.get(key);
+  }
+
+  async deleteKey(key: string): Promise<string | null> {
+    if (!this.isConnected) await this.connect();
+    return await this.client.del(key);
   }
 
   async disconnect(): Promise<void> {
